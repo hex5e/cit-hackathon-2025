@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Directory Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="intro">
+        <h1>Community Directory</h1>
+        <p>
+          This streamlined demo keeps only the essentials: first name, last name,
+          and ZIP code. Add new entries with the form below and they appear instantly
+          in the directory list.
+        </p>
+      </section>
+
+      <section class="form-card">
+        <h2>Add a person</h2>
+        <form id="person-form">
+          <label>
+            First name
+            <input type="text" name="first_name" required />
+          </label>
+          <label>
+            Last name
+            <input type="text" name="last_name" required />
+          </label>
+          <label>
+            ZIP code
+            <input type="text" name="zip_code" pattern="\\d{5}" required />
+          </label>
+          <button type="submit">Save</button>
+          <p class="error" role="alert" hidden></p>
+        </form>
+      </section>
+
+      <section class="table-card">
+        <h2>People</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">First name</th>
+              <th scope="col">Last name</th>
+              <th scope="col">ZIP</th>
+            </tr>
+          </thead>
+          <tbody id="people-body"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
