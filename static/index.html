@@ -7,19 +7,51 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="container">
-      <section class="intro">
-        <h1>Community Directory</h1>
-        <p>
-          Capture a fuller picture of the people in your community. Record
-          demographics, education, work experience, and background details. New
-          entries appear instantly in the directory list below.
-        </p>
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-copy">
+          <p class="brand-tagline">Community Impact Team</p>
+          <p class="brand-name">Bridge Support Network</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#about">About</a>
+        <a href="#volunteers">Volunteers</a>
+        <a href="#employment">Employment</a>
+        <a href="#donations">Donations</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="cta-button" href="#donate">Donate</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-image" role="presentation"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="hero-kicker">Helping bridge the gap</p>
+          <h1>Community Directory</h1>
+          <p>
+            Capture a fuller picture of the people in your community. Record
+            demographics, education, work experience, and background details. New
+            entries appear instantly in the directory list below.
+          </p>
+          <a class="hero-link" href="#people">Learn more</a>
+        </div>
+        <div class="vertical-label" aria-hidden="true">Bridge Support</div>
       </section>
 
-      <section class="form-card">
-        <h2>Add a person</h2>
-        <form id="person-form">
+      <div class="anchor-target" id="about" aria-hidden="true"></div>
+      <div class="anchor-target" id="volunteers" aria-hidden="true"></div>
+      <div class="anchor-target" id="employment" aria-hidden="true"></div>
+      <div class="anchor-target" id="donations" aria-hidden="true"></div>
+      <div class="anchor-target" id="contact" aria-hidden="true"></div>
+
+      <div class="content-grid">
+        <section class="card form-card" id="form">
+          <h2>Add a person</h2>
+          <form id="person-form">
           <div class="form-grid">
             <label>
               First name <span class="required-indicator" aria-hidden="true">*</span>
@@ -175,9 +207,9 @@
         </form>
       </section>
 
-      <section class="table-card">
-        <h2>People</h2>
-        <table>
+        <section class="card table-card" id="people">
+          <h2>People</h2>
+          <table>
           <thead>
             <tr>
               <th scope="col">ID</th>
@@ -200,7 +232,8 @@
           </thead>
           <tbody id="people-body"></tbody>
         </table>
-      </section>
+        </section>
+      </div>
     </main>
 
     <script src="app.js" defer></script>
