@@ -17,11 +17,21 @@ const booleanFields = [
 ];
 
 function formatBoolean(value) {
+  if (value === null || value === undefined) {
+    return "—";
+  }
   return value ? "Yes" : "No";
 }
 
 function formatText(value) {
   return value && value !== "" ? value : "—";
+}
+
+function formatZip(value) {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+  return value;
 }
 
 async function fetchPeople() {
@@ -54,7 +64,7 @@ function renderRows(people) {
       <td>${person.last_name}</td>
       <td>${formatText(person.date_of_birth)}</td>
       <td>${formatText(person.address)}</td>
-      <td>${person.zip ?? "—"}</td>
+      <td>${formatZip(person.zip)}</td>
       <td>${formatBoolean(person.criminal_history)}</td>
       <td>${formatBoolean(person.addiction_history)}</td>
       <td>${formatBoolean(person.addiction_current)}</td>
@@ -83,14 +93,22 @@ async function refreshList() {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
-  const payload = Object.fromEntries(formData.entries());
+  const payload = {};
 
-  for (const field of booleanFields) {
-    payload[field] = formData.has(field);
+  for (const [key, value] of formData.entries()) {
+    payload[key] = typeof value === "string" ? value.trim() : value;
   }
 
-  if (payload.zip !== undefined && payload.zip !== "") {
-    payload.zip = Number.parseInt(payload.zip, 10);
+  if (payload.zip && !/^[0-9]{5}$/.test(payload.zip)) {
+    errorMessage.textContent = "ZIP must be empty or exactly 5 digits.";
+    errorMessage.hidden = false;
+    return;
+  }
+
+  for (const field of booleanFields) {
+    if (!(field in payload)) {
+      payload[field] = null;
+    }
   }
 
   errorMessage.hidden = true;
@@ -110,6 +128,7 @@ form.addEventListener("submit", async (event) => {
     }
 
     form.reset();
+    resetTriStateRadios();
     await refreshList();
   } catch (error) {
     errorMessage.textContent = error.message;
@@ -117,4 +136,34 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
+function setupTriStateRadios() {
+  const radios = document.querySelectorAll('.choice-row input[type="radio"]');
+  radios.forEach((input) => {
+    input.dataset.checked = "false";
+    input.addEventListener("click", (event) => {
+      if (input.dataset.checked === "true") {
+        input.checked = false;
+        input.dataset.checked = "false";
+        event.preventDefault();
+        return;
+      }
+
+      document
+        .querySelectorAll(`input[name="${input.name}"]`)
+        .forEach((radio) => {
+          radio.dataset.checked = radio === input ? "true" : "false";
+        });
+    });
+  });
+}
+
+function resetTriStateRadios() {
+  document
+    .querySelectorAll('.choice-row input[type="radio"]')
+    .forEach((input) => {
+      input.dataset.checked = "false";
+    });
+}
+
+setupTriStateRadios();
 refreshList();

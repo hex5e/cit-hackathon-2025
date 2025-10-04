@@ -52,17 +52,17 @@ CREATE_TABLE_SQL = """
         last_name TEXT NOT NULL,
         date_of_birth TEXT,
         address TEXT,
-        zip INTEGER NOT NULL,
-        criminal_history INTEGER NOT NULL DEFAULT 0,
-        addiction_history INTEGER NOT NULL DEFAULT 0,
-        addiction_current INTEGER NOT NULL DEFAULT 0,
-        disability INTEGER NOT NULL DEFAULT 0,
-        mental_illness_history INTEGER NOT NULL DEFAULT 0,
-        high_school_ed INTEGER NOT NULL DEFAULT 0,
-        work_history INTEGER NOT NULL DEFAULT 0,
-        higher_ed INTEGER NOT NULL DEFAULT 0,
-        veteran INTEGER NOT NULL DEFAULT 0,
-        dependents INTEGER NOT NULL DEFAULT 0
+        zip TEXT,
+        criminal_history INTEGER,
+        addiction_history INTEGER,
+        addiction_current INTEGER,
+        disability INTEGER,
+        mental_illness_history INTEGER,
+        high_school_ed INTEGER,
+        work_history INTEGER,
+        higher_ed INTEGER,
+        veteran INTEGER,
+        dependents INTEGER
     )
 """
 
@@ -117,7 +117,7 @@ def init_db() -> None:
                         "Lovelace",
                         "1815-12-10",
                         "12 St James's Square, London",
-                        20500,
+                        "20500",
                         0,
                         0,
                         0,
@@ -134,7 +134,7 @@ def init_db() -> None:
                         "Turing",
                         "1912-06-23",
                         "Kings Parade, Cambridge",
-                        2142,
+                        "02142",
                         0,
                         0,
                         0,
@@ -151,7 +151,7 @@ def init_db() -> None:
                         "Hopper",
                         "1906-12-09",
                         "11 Wall Street, New York",
-                        10001,
+                        "10001",
                         0,
                         0,
                         0,
@@ -171,7 +171,10 @@ def init_db() -> None:
 def normalize_person_row(row: sqlite3.Row) -> Dict[str, object]:
     person = dict(row)
     for field in BOOLEAN_FIELDS:
-        person[field] = bool(person[field])
+        if person[field] is None:
+            person[field] = None
+        else:
+            person[field] = bool(person[field])
     return person
 
 
@@ -203,24 +206,34 @@ def list_people() -> List[Dict[str, object]]:
         return [normalize_person_row(row) for row in cursor.fetchall()]
 
 
-def parse_bool_value(value: object) -> int:
+def parse_tristate_value(value: object) -> int | None:
+    if value is None:
+        return None
     if isinstance(value, bool):
         return int(value)
     if isinstance(value, (int, float)):
         return int(bool(value))
     if isinstance(value, str):
-        return int(value.strip().lower() in {"1", "true", "yes", "on"})
-    return 0
+        normalized = value.strip().lower()
+        if normalized in {"", "null", "none"}:
+            return None
+        if normalized in {"1", "true", "yes", "on"}:
+            return 1
+        if normalized in {"0", "false", "no", "off"}:
+            return 0
+    return None
 
 
 def create_person(payload: Dict[str, object]) -> Dict[str, object]:
-    if "zip" not in payload or payload["zip"] in (None, ""):
-        raise ValueError("ZIP code is required")
-
-    try:
-        zip_value = int(str(payload["zip"]).strip())
-    except (TypeError, ValueError):
-        raise ValueError("ZIP code must be a number")
+    zip_raw = payload.get("zip")
+    zip_value: str | None
+    if zip_raw in (None, ""):
+        zip_value = None
+    else:
+        zip_str = str(zip_raw).strip()
+        if not (len(zip_str) == 5 and zip_str.isdigit()):
+            raise ValueError("ZIP code must be exactly 5 digits")
+        zip_value = zip_str
 
     sanitized: Dict[str, object] = {
         "first_name": str(payload.get("first_name", "")).strip(),
@@ -231,7 +244,7 @@ def create_person(payload: Dict[str, object]) -> Dict[str, object]:
     }
 
     for field in BOOLEAN_FIELDS:
-        sanitized[field] = parse_bool_value(payload.get(field))
+        sanitized[field] = parse_tristate_value(payload.get(field))
 
     if not sanitized["first_name"] or not sanitized["last_name"]:
         raise ValueError("Missing required fields")
@@ -263,6 +276,8 @@ def create_person(payload: Dict[str, object]) -> Dict[str, object]:
         conn.commit()
         person = {"id": cursor.lastrowid, **sanitized}
         for field in BOOLEAN_FIELDS:
+            if person[field] is None:
+                continue
             person[field] = bool(person[field])
         return person
 
@@ -311,7 +326,7 @@ class DirectoryRequestHandler(SimpleHTTPRequestHandler):
             )
             return
 
-        required_fields = ["first_name", "last_name", "zip"]
+        required_fields = ["first_name", "last_name"]
         missing = [
             field
             for field in required_fields
