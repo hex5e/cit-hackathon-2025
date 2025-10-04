@@ -37,9 +37,19 @@ body {
   line-height: 1.6;
 }
 
+
 .form-card form {
   display: grid;
+  gap: 1.5rem;
+}
+
+.form-grid {
+  display: grid;
   gap: 1rem;
+}
+
+.form-grid .full-width {
+  grid-column: 1 / -1;
 }
 
 label {
@@ -49,7 +59,9 @@ label {
   font-size: 0.95rem;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="date"],
+input[type="number"] {
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 0.65rem 0.75rem;
@@ -57,10 +69,51 @@ input[type="text"] {
   transition: border-color 0.2s ease;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus {
   border-color: #2563eb;
   outline: none;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.form-card form fieldset {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1rem 1.25rem 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.form-card form legend {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0 0.25rem;
+}
+
+.checkbox-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+label.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+label.checkbox input[type="checkbox"] {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: #2563eb;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 button[type="submit"] {
@@ -123,5 +176,17 @@ td.empty {
 
   .intro {
     grid-column: 1 / -1;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .form-card form fieldset {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+
+  .checkbox-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }

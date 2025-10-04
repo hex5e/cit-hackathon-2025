@@ -11,29 +11,88 @@
       <section class="intro">
         <h1>Community Directory</h1>
         <p>
-          This streamlined demo keeps only the essentials: first name, last name,
-          and ZIP code. Add new entries with the form below and they appear instantly
-          in the directory list.
+          Capture a fuller picture of the people in your community. Record
+          demographics, education, work experience, and background details. New
+          entries appear instantly in the directory list below.
         </p>
       </section>
 
       <section class="form-card">
         <h2>Add a person</h2>
         <form id="person-form">
-          <label>
-            First name
-            <input type="text" name="first_name" required />
-          </label>
-          <label>
-            Last name
-            <input type="text" name="last_name" required />
-          </label>
-          <label>
-            ZIP code
-            <input type="text" name="zip_code" pattern="\d{5}" required />
-          </label>
-          <button type="submit">Save</button>
-          <p class="error" role="alert" hidden></p>
+          <div class="form-grid">
+            <label>
+              First name
+              <input type="text" name="first_name" autocomplete="given-name" required />
+            </label>
+            <label>
+              Last name
+              <input type="text" name="last_name" autocomplete="family-name" required />
+            </label>
+            <label>
+              Date of birth
+              <input type="date" name="date_of_birth" />
+            </label>
+            <label class="full-width">
+              Address
+              <input type="text" name="address" autocomplete="street-address" />
+            </label>
+            <label>
+              ZIP
+              <input type="number" name="zip" inputmode="numeric" min="0" step="1" required />
+            </label>
+          </div>
+
+          <fieldset class="checkbox-group">
+            <legend>History and status</legend>
+            <div class="checkbox-grid">
+              <label class="checkbox">
+                <input type="checkbox" name="criminal_history" />
+                Criminal history
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="addiction_history" />
+                Addiction history
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="addiction_current" />
+                Current addiction
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="disability" />
+                Disability
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="mental_illness_history" />
+                Mental illness history
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="high_school_ed" />
+                High school education
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="work_history" />
+                Work history
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="higher_ed" />
+                Higher education
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="veteran" />
+                Veteran
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="dependents" />
+                Dependents
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit">Save</button>
+            <p class="error" role="alert" hidden></p>
+          </div>
         </form>
       </section>
 
@@ -42,9 +101,22 @@
         <table>
           <thead>
             <tr>
+              <th scope="col">ID</th>
               <th scope="col">First name</th>
               <th scope="col">Last name</th>
+              <th scope="col">Date of birth</th>
+              <th scope="col">Address</th>
               <th scope="col">ZIP</th>
+              <th scope="col">Criminal history</th>
+              <th scope="col">Addiction history</th>
+              <th scope="col">Current addiction</th>
+              <th scope="col">Disability</th>
+              <th scope="col">Mental illness history</th>
+              <th scope="col">High school education</th>
+              <th scope="col">Work history</th>
+              <th scope="col">Higher education</th>
+              <th scope="col">Veteran</th>
+              <th scope="col">Dependents</th>
             </tr>
           </thead>
           <tbody id="people-body"></tbody>
