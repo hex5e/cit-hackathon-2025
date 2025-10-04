@@ -11,29 +11,167 @@
       <section class="intro">
         <h1>Community Directory</h1>
         <p>
-          This streamlined demo keeps only the essentials: first name, last name,
-          and ZIP code. Add new entries with the form below and they appear instantly
-          in the directory list.
+          Capture a fuller picture of the people in your community. Record
+          demographics, education, work experience, and background details. New
+          entries appear instantly in the directory list below.
         </p>
       </section>
 
       <section class="form-card">
         <h2>Add a person</h2>
         <form id="person-form">
-          <label>
-            First name
-            <input type="text" name="first_name" required />
-          </label>
-          <label>
-            Last name
-            <input type="text" name="last_name" required />
-          </label>
-          <label>
-            ZIP code
-            <input type="text" name="zip_code" pattern="\d{5}" required />
-          </label>
-          <button type="submit">Save</button>
-          <p class="error" role="alert" hidden></p>
+          <div class="form-grid">
+            <label>
+              First name <span class="required-indicator" aria-hidden="true">*</span>
+              <input type="text" name="first_name" autocomplete="given-name" required />
+            </label>
+            <label>
+              Last name <span class="required-indicator" aria-hidden="true">*</span>
+              <input type="text" name="last_name" autocomplete="family-name" required />
+            </label>
+            <label>
+              Date of birth
+              <input type="date" name="date_of_birth" />
+            </label>
+            <label class="full-width">
+              Address
+              <input type="text" name="address" autocomplete="street-address" />
+            </label>
+            <label>
+              ZIP
+              <input
+                type="text"
+                name="zip"
+                inputmode="numeric"
+                pattern="[0-9]{5}"
+                maxlength="5"
+                aria-describedby="zip-hint"
+              />
+            </label>
+          </div>
+
+          <p id="zip-hint" class="field-hint">Leave blank or enter a 5-digit ZIP code.</p>
+
+          <fieldset class="checkbox-group">
+            <legend>History and status</legend>
+            <div class="choice-grid">
+              <div class="choice-row" role="group" aria-labelledby="criminal_history_label">
+                <span id="criminal_history_label">Criminal history</span>
+                <label>
+                  <input type="radio" name="criminal_history" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="criminal_history" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="addiction_history_label">
+                <span id="addiction_history_label">Addiction history</span>
+                <label>
+                  <input type="radio" name="addiction_history" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="addiction_history" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="addiction_current_label">
+                <span id="addiction_current_label">Current addiction</span>
+                <label>
+                  <input type="radio" name="addiction_current" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="addiction_current" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="disability_label">
+                <span id="disability_label">Disability</span>
+                <label>
+                  <input type="radio" name="disability" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="disability" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="mental_illness_history_label">
+                <span id="mental_illness_history_label">Mental illness history</span>
+                <label>
+                  <input type="radio" name="mental_illness_history" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="mental_illness_history" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="high_school_ed_label">
+                <span id="high_school_ed_label">High school education</span>
+                <label>
+                  <input type="radio" name="high_school_ed" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="high_school_ed" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="work_history_label">
+                <span id="work_history_label">Work history</span>
+                <label>
+                  <input type="radio" name="work_history" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="work_history" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="higher_ed_label">
+                <span id="higher_ed_label">Higher education</span>
+                <label>
+                  <input type="radio" name="higher_ed" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="higher_ed" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="veteran_label">
+                <span id="veteran_label">Veteran</span>
+                <label>
+                  <input type="radio" name="veteran" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="veteran" value="no" />
+                  No
+                </label>
+              </div>
+              <div class="choice-row" role="group" aria-labelledby="dependents_label">
+                <span id="dependents_label">Dependents</span>
+                <label>
+                  <input type="radio" name="dependents" value="yes" />
+                  Yes
+                </label>
+                <label>
+                  <input type="radio" name="dependents" value="no" />
+                  No
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit">Save</button>
+            <p class="error" role="alert" hidden></p>
+          </div>
         </form>
       </section>
 
@@ -42,9 +180,22 @@
         <table>
           <thead>
             <tr>
+              <th scope="col">ID</th>
               <th scope="col">First name</th>
               <th scope="col">Last name</th>
+              <th scope="col">Date of birth</th>
+              <th scope="col">Address</th>
               <th scope="col">ZIP</th>
+              <th scope="col">Criminal history</th>
+              <th scope="col">Addiction history</th>
+              <th scope="col">Current addiction</th>
+              <th scope="col">Disability</th>
+              <th scope="col">Mental illness history</th>
+              <th scope="col">High school education</th>
+              <th scope="col">Work history</th>
+              <th scope="col">Higher education</th>
+              <th scope="col">Veteran</th>
+              <th scope="col">Dependents</th>
             </tr>
           </thead>
           <tbody id="people-body"></tbody>

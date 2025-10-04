@@ -21,55 +21,265 @@ def get_connection() -> sqlite3.Connection:
     return connection
 
 
+BOOLEAN_FIELDS = [
+    "criminal_history",
+    "addiction_history",
+    "addiction_current",
+    "disability",
+    "mental_illness_history",
+    "high_school_ed",
+    "work_history",
+    "higher_ed",
+    "veteran",
+    "dependents",
+]
+
+NON_ID_FIELDS = [
+    "first_name",
+    "last_name",
+    "date_of_birth",
+    "address",
+    "zip",
+    *BOOLEAN_FIELDS,
+]
+
+EXPECTED_COLUMNS = {"id"} | set(NON_ID_FIELDS)
+
+CREATE_TABLE_SQL = """
+    CREATE TABLE people (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        date_of_birth TEXT,
+        address TEXT,
+        zip TEXT,
+        criminal_history INTEGER,
+        addiction_history INTEGER,
+        addiction_current INTEGER,
+        disability INTEGER,
+        mental_illness_history INTEGER,
+        high_school_ed INTEGER,
+        work_history INTEGER,
+        higher_ed INTEGER,
+        veteran INTEGER,
+        dependents INTEGER
+    )
+"""
+
+
+def ensure_schema(conn: sqlite3.Connection) -> None:
+    existing_table = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='people'"
+    ).fetchone()
+
+    if not existing_table:
+        conn.execute(CREATE_TABLE_SQL)
+        conn.commit()
+        return
+
+    column_rows = conn.execute("PRAGMA table_info(people)").fetchall()
+    existing_columns = {row[1] for row in column_rows}
+
+    if existing_columns != EXPECTED_COLUMNS:
+        conn.execute("DROP TABLE IF EXISTS people")
+        conn.execute(CREATE_TABLE_SQL)
+        conn.commit()
+
+
 def init_db() -> None:
     with get_connection() as conn:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS people (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                first_name TEXT NOT NULL,
-                last_name TEXT NOT NULL,
-                zip_code TEXT NOT NULL
-            )
-            """
-        )
+        ensure_schema(conn)
         if conn.execute("SELECT COUNT(*) FROM people").fetchone()[0] == 0:
             conn.executemany(
-                "INSERT INTO people (first_name, last_name, zip_code) VALUES (?, ?, ?)",
+                """
+                INSERT INTO people (
+                    first_name,
+                    last_name,
+                    date_of_birth,
+                    address,
+                    zip,
+                    criminal_history,
+                    addiction_history,
+                    addiction_current,
+                    disability,
+                    mental_illness_history,
+                    high_school_ed,
+                    work_history,
+                    higher_ed,
+                    veteran,
+                    dependents
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
                 [
-                    ("Ada", "Lovelace", "20500"),
-                    ("Alan", "Turing", "02142"),
-                    ("Grace", "Hopper", "10001"),
+                    (
+                        "Ada",
+                        "Lovelace",
+                        "1815-12-10",
+                        "12 St James's Square, London",
+                        "20500",
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        1,
+                        1,
+                        0,
+                        1,
+                    ),
+                    (
+                        "Alan",
+                        "Turing",
+                        "1912-06-23",
+                        "Kings Parade, Cambridge",
+                        "02142",
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        0,
+                    ),
+                    (
+                        "Grace",
+                        "Hopper",
+                        "1906-12-09",
+                        "11 Wall Street, New York",
+                        "10001",
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        1,
+                        1,
+                        1,
+                        0,
+                    ),
                 ],
             )
             conn.commit()
 
 
-def list_people() -> List[Dict[str, str]]:
+def normalize_person_row(row: sqlite3.Row) -> Dict[str, object]:
+    person = dict(row)
+    for field in BOOLEAN_FIELDS:
+        if person[field] is None:
+            person[field] = None
+        else:
+            person[field] = bool(person[field])
+    return person
+
+
+def list_people() -> List[Dict[str, object]]:
     with get_connection() as conn:
         cursor = conn.execute(
-            "SELECT id, first_name, last_name, zip_code FROM people ORDER BY id"
+            """
+            SELECT
+                id,
+                first_name,
+                last_name,
+                date_of_birth,
+                address,
+                zip,
+                criminal_history,
+                addiction_history,
+                addiction_current,
+                disability,
+                mental_illness_history,
+                high_school_ed,
+                work_history,
+                higher_ed,
+                veteran,
+                dependents
+            FROM people
+            ORDER BY id
+            """
         )
-        return [dict(row) for row in cursor.fetchall()]
+        return [normalize_person_row(row) for row in cursor.fetchall()]
 
 
-def create_person(payload: Dict[str, str]) -> Dict[str, str]:
+def parse_tristate_value(value: object) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return int(bool(value))
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"", "null", "none"}:
+            return None
+        if normalized in {"1", "true", "yes", "on"}:
+            return 1
+        if normalized in {"0", "false", "no", "off"}:
+            return 0
+    return None
+
+
+def create_person(payload: Dict[str, object]) -> Dict[str, object]:
+    zip_raw = payload.get("zip")
+    zip_value: str | None
+    if zip_raw in (None, ""):
+        zip_value = None
+    else:
+        zip_str = str(zip_raw).strip()
+        if not (len(zip_str) == 5 and zip_str.isdigit()):
+            raise ValueError("ZIP code must be exactly 5 digits")
+        zip_value = zip_str
+
+    sanitized: Dict[str, object] = {
+        "first_name": str(payload.get("first_name", "")).strip(),
+        "last_name": str(payload.get("last_name", "")).strip(),
+        "date_of_birth": str(payload.get("date_of_birth", "")).strip(),
+        "address": str(payload.get("address", "")).strip(),
+        "zip": zip_value,
+    }
+
+    for field in BOOLEAN_FIELDS:
+        sanitized[field] = parse_tristate_value(payload.get(field))
+
+    if not sanitized["first_name"] or not sanitized["last_name"]:
+        raise ValueError("Missing required fields")
+
     with get_connection() as conn:
         cursor = conn.execute(
-            "INSERT INTO people (first_name, last_name, zip_code) VALUES (?, ?, ?)",
-            (
-                payload["first_name"].strip(),
-                payload["last_name"].strip(),
-                payload["zip_code"].strip(),
-            ),
+            """
+            INSERT INTO people (
+                first_name,
+                last_name,
+                date_of_birth,
+                address,
+                zip,
+                criminal_history,
+                addiction_history,
+                addiction_current,
+                disability,
+                mental_illness_history,
+                high_school_ed,
+                work_history,
+                higher_ed,
+                veteran,
+                dependents
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            tuple(sanitized[field] for field in NON_ID_FIELDS),
         )
         conn.commit()
-        return {
-            "id": cursor.lastrowid,
-            "first_name": payload["first_name"].strip(),
-            "last_name": payload["last_name"].strip(),
-            "zip_code": payload["zip_code"].strip(),
-        }
+        person = {"id": cursor.lastrowid, **sanitized}
+        for field in BOOLEAN_FIELDS:
+            if person[field] is None:
+                continue
+            person[field] = bool(person[field])
+        return person
 
 
 class DirectoryRequestHandler(SimpleHTTPRequestHandler):
@@ -116,8 +326,12 @@ class DirectoryRequestHandler(SimpleHTTPRequestHandler):
             )
             return
 
-        required_fields = ["first_name", "last_name", "zip_code"]
-        missing = [field for field in required_fields if not payload.get(field)]
+        required_fields = ["first_name", "last_name"]
+        missing = [
+            field
+            for field in required_fields
+            if payload.get(field) in (None, "")
+        ]
         if missing:
             self._set_json_headers(HTTPStatus.BAD_REQUEST)
             self.wfile.write(
@@ -130,7 +344,13 @@ class DirectoryRequestHandler(SimpleHTTPRequestHandler):
             )
             return
 
-        person = create_person(payload)
+        try:
+            person = create_person(payload)
+        except ValueError as error:
+            self._set_json_headers(HTTPStatus.BAD_REQUEST)
+            self.wfile.write(json.dumps({"error": str(error)}).encode("utf-8"))
+            return
+
         self._set_json_headers(HTTPStatus.CREATED)
         self.wfile.write(json.dumps(person).encode("utf-8"))
 
